@@ -1,0 +1,10 @@
+CSV/
+Delivered/
+Deployed/
+nimcache/
+config.ini
+src/deployedPointsToCSV_Installer.nim
+deployedPointsToCSV.exe
+imgui.ini
+output.CSV
+processedFiles.bin
