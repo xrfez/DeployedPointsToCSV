@@ -400,6 +400,7 @@ proc mainUI*() =
         startDirectory = openFolderDialog()
         if startDirectory != "":
           addToConfig("Global", "Read Directory", startDirectory)
+          getOrDefaultConfig()
         else:
           startDirectory = readDirectory
       igSameLine()
@@ -409,6 +410,7 @@ proc mainUI*() =
         if saveFileName != "":
           addToConfig("Global", "Write Directory", splitPath(saveFileName)[0])
           addToConfig("Global", "Output Name", splitPath(saveFileName)[1])
+          getOrDefaultConfig()
         else:
           saveFileName = readDirectory / outputName
       igSameLine()
