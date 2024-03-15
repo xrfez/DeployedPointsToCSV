@@ -1,11 +1,12 @@
 import deployedPointsToCSV/[ui, configTools, processedFilesTools]
 import packy
 
-packDep(r"E:\Programing\01_sandbox\DeployedPointsToCSV\typeface\garamond\Garamond.ttf", r"typeface\garamond")
+packDep(
+  r"C:\Users\xrfez\Documents\Programing\01_Sandbox\DeployedPointsToCSV\typeface\garamond\Garamond.ttf",
+  r"typeface\garamond"
+)
 
 when isMainModule:
   getOrDefaultConfig()
   getOrDefaultProcessedFiles()
   mainUI()
-
-
