@@ -13,8 +13,8 @@ proc getOrDefaultConfig*() =
   ## If the file does not exist, create it with default values
   if not fileExists("config.ini"):
     var config = newConfig()
-    config.setSectionKey("Global", "Read Directory", """""""")
-    config.setSectionKey("Global", "Write Directory", """""""")
+    config.setSectionKey("Global", "Read Directory", "C:")
+    config.setSectionKey("Global", "Write Directory", "C:")
     config.setSectionKey("Global", "Output Name", """output.csv""")
     config.setSectionKey("Computer Name", "NAV207", "T17")
     config.setSectionKey("Computer Name", "SAEPC", "T18")

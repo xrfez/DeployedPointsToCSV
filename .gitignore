@@ -2,6 +2,7 @@ CSV/
 Delivered/
 Deployed/
 nimcache/
+persist/
 config.ini
 src/deployedPointsToCSV_Installer.nim
 deployedPointsToCSV.exe

@@ -249,7 +249,7 @@ proc openFolderDialog(): string =
   SetOptions(f_FileSystem, pfos or FOS_PICKFOLDERS)
   SetTitle(f_FileSystem, "Select the folder to start searching for XML files in.")
   SHCreateItemFromParsingName(
-    writeDirectory, nil, &IID_IShellItem, cast[ptr pointer](addr pDefaultFolder)
+    readDirectory, nil, &IID_IShellItem, cast[ptr pointer](addr pDefaultFolder)
   )
   SetFolder(f_FileSystem, pDefaultFolder)
   {.pop.}
@@ -376,7 +376,7 @@ proc mainUI*() =
         ImGuiWindowFlags.NoCollapse,
       )
     startDirectory: string = readDirectory
-    saveFileName: string = readDirectory / outputName
+    saveFileName: string = writeDirectory / outputName
     walkRecursive: bool = true
     deleteProcessedFiles: bool = false
 
@@ -432,6 +432,7 @@ proc mainUI*() =
       igText(startDirectory)
       if igButton("Select Save Filename"):
         saveFileName = getSaveFileName()
+        echo saveFileName
         if saveFileName != "":
           addToConfig("Global", "Write Directory", splitPath(saveFileName)[0])
           addToConfig("Global", "Output Name", splitPath(saveFileName)[1])

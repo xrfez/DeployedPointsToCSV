@@ -28,9 +28,8 @@ type DP = object
   pointDateTime: string
 
 proc `$`(dp: DP): string {.used.} =
-  return
-    dp.featureID & ";" & dp.lat & ";" & dp.lon & ";" & dp.alt & ";" & dp.gpsString & ";" &
-    dp.line & ";" & dp.station & ";" & dp.pointDateTime
+  return dp.featureID & ";" & dp.lat & ";" & dp.lon & ";" & dp.alt & ";" & dp.gpsString &
+      ";" & dp.line & ";" & dp.station & ";" & dp.pointDateTime
 
 proc readDeployedPointsXML(filename: string): seq[DP] =
   ## Read DeployedPoints.xml
@@ -79,18 +78,44 @@ proc readDeployedPointsXML(filename: string): seq[DP] =
 proc ggaExtractLatitude(gpsString: string): string =
   ## Extract Latitude from GGA
   # $GPGGA,194754.8,7009.06510,N,15156.30600,W,4,19,0.7,26.2,M,-0.9,M,0.8,0000*4D,$GNGSA,A,3,80,71,88,72,81,82,73,,,,,,1.4,0.7,1.3*20
+  #echo gpsString
   let splitString = gpsString.split(',')
   if splitString[0] != "$GPGGA":
     return ""
-  result = splitString[2] & splitString[3]
+  # convert the fraction of minutes into seconds
+  let mantisa = parseFloat(splitString[2]).int
+  var raw = parsefloat(splitString[2]) - parseFloat(splitString[2]).int.float
+  raw *= 60.0
+  var rawString = $raw
+  if rawString.len < 6:
+    for i in rawstring.len + 1 .. 6:
+      rawString &= "0"
+  if rawString[1] == '.':
+    rawString = "0" & rawString[0] & rawString[2 .. 4]
+  #echo rawString.len
+  #echo gpsString
+  result = $mantisa & "." & rawString[0 .. 1] & rawString[3 .. 4] & splitString[3]
 
 proc ggaExtractLongitude(gpsString: string): string =
   ## Extract Longitude from GGA
   # $GPGGA,194754.8,7009.06510,N,15156.30600,W,4,19,0.7,26.2,M,-0.9,M,0.8,0000*4D,$GNGSA,A,3,80,71,88,72,81,82,73,,,,,,1.4,0.7,1.3*20
+  #echo gpsString
   let splitString = gpsString.split(',')
   if splitString[0] != "$GPGGA":
     return ""
-  result = splitString[4] & splitString[5]
+  # convert the fraction of minutes into seconds
+  let mantisa = parseFloat(splitString[4]).int
+  var raw = parsefloat(splitString[4]) - parseFloat(splitString[4]).int.float
+  raw *= 60.0
+  var rawString = $raw
+  if rawString.len < 6:
+    for i in rawstring.len + 1 .. 6:
+      rawString &= "0"
+  if rawString[1] == '.':
+    rawString = "0" & rawString[0] & rawString[2 .. 4]
+  #echo rawString.len
+  #echo gpsString
+  result = $mantisa & "." & rawString[0 .. 1] & rawString[3 .. 4] & splitString[5]
 
 proc ggaExtractConvertedElevation(gpsString: string): string =
   ## Convert Meters to USFT
@@ -140,11 +165,12 @@ proc applyDateCorrection(dp: var CSVEntry) =
   # let pointDateTime = parseTime(dp.dateTime, "yyyy-MM-dd'T'HH:mm:ss'.'ffffffZZZ", local())
   let
     zone = tz(dp.dateTime[^6 .. dp.dateTime.high])
-    pointDateTime = parseTime(
-      dp.dateTime[0 .. 18],
-      "yyyy-MM-dd'T'HH:mm:ss", #[ '.'ffffff" ]#
-      zone,
-    )
+    pointDateTime =
+      parseTime(
+        dp.dateTime[0 .. 18],
+        "yyyy-MM-dd'T'HH:mm:ss", #[ '.'ffffff" ]#
+        zone,
+      )
     correctedTimeStr = $pointDateTime.inZone(utc())
     correctedTime = pointDateTime.inZone(utc())
     correctedDate = parse(correctedTimeStr[0 .. 9], "yyyy-MM-dd", utc())
@@ -172,7 +198,22 @@ proc createCSVEntry(dp: seq[DP], vehicle: string, zOffset: string): seq[CSVEntry
     result[idx].stnval = entry.line & entry.station
     result[idx].latitude = ggaExtractLatitude(entry.gpsString)
     result[idx].longitude = ggaExtractLongitude(entry.gpsString)
-    result[idx].elipsoidHeight = ggaExtractConvertedElevation(entry.gpsString)
+    try:
+      let converterElevation =
+        block:
+          try:
+            ggaExtractConvertedElevation(entry.gpsString).parseFloat
+          except:
+            ggaExtractConvertedElevation(entry.gpsString).parseInt.float
+      let zeOffset =
+        block:
+          try:
+            zOffset.parseFloat
+          except:
+            zOffset.parseInt.float
+      result[idx].elipsoidHeight = $(converterElevation - zeOffset)
+    except:
+      result[idx].elipsoidHeight = "0.0"
     result[idx].utcTime = ggaExtractTime(entry.gpsString)
     result[idx].gpsMode = ggaExtractGPSMode(entry.gpsString)
     result[idx].sats = ggaExtractSats(entry.gpsString)
