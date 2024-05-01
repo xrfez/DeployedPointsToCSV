@@ -1,6 +1,6 @@
 # Package
 backend       = "cpp"
-version       = "0.2.3"
+version       = "0.2.4"
 author        = "Joshua Fenner"
 description   = "Navigator DeployedPoints.xml Decoder"
 license       = "MIT"
